@@ -121,15 +121,20 @@ body {
 
 /* Add these to your existing styles */
 .story-image {
-  position: relative;
-  width: 340px;
-  height: 520px;
-  transform: none !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  overflow: hidden;
-  border-radius: 12px;
-  margin: 20px 0;
+  position: absolute;
+  width: 570px;
+  height: 790px;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out, visibility 0s linear 0.3s;
+  pointer-events: none; /* Prevent interaction with hidden images */
+}
+
+.story-image[style*="visible"] {
+  pointer-events: auto;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out, visibility 0s linear 0s;
 }
 
 .story-image img {
@@ -139,139 +144,103 @@ body {
   border-radius: 12px;
 }
 
-/* Individual image positions - mobile (stacked vertically) */
-.story-image:nth-child(1) {
-  transform: translate(-50%, 10%) translateX(0) rotate(0deg);
-  z-index: 5;
-}
-
-.story-image:nth-child(2) {
-  transform: translate(-50%, -20%) translateX(0) rotate(0deg);
-  z-index: 4;
-}
-
-.story-image:nth-child(3) {
-  transform: translate(-50%, -50%) translateX(0) rotate(0deg);
-  z-index: 3;
-}
-
-.story-image:nth-child(4) {
-  transform: translate(-50%, -80%) translateX(0) rotate(0deg);
-  z-index: 2;
-}
-
-.story-image:nth-child(5) {
-  transform: translate(-50%, -110%) translateX(0) rotate(0deg);
+/* Position classes with circular layout */
+.story-image.position-0 {
+  transform: translate(-50%, 20%) translateX(180%) rotate(35deg);
   z-index: 1;
 }
 
-/* Hover effect - mobile */
-.story-image:hover {
-  width: 360px;
-  height: 540px;
-  z-index: 10;
+.story-image.position-1 {
+  transform: translate(-50%, -10%) translateX(140%) rotate(25deg);
+  z-index: 2;
 }
 
-/* Tablet breakpoint */
-@media (min-width: 768px) {
-  .gallery-stack {
-    display: block;
-  }
-
-  .story-image {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform-style: preserve-3d;
-    width: 380px;
-    height: 500px;
-  }
-
-  .story-image:nth-child(1) {
-    transform: translate(-50%, -20%) translateX(140%) rotate(18deg) !important;
-  }
-
-  .story-image:nth-child(2) {
-    transform: translate(-50%, -42%) translateX(70%) rotate(8deg) !important;
-  }
-
-  .story-image:nth-child(3) {
-    transform: translate(-50%, -50%) translateX(0) rotate(0deg) !important;
-  }
-
-  .story-image:nth-child(4) {
-    transform: translate(-50%, -42%) translateX(-70%) rotate(-8deg) !important;
-  }
-
-  .story-image:nth-child(5) {
-    transform: translate(-50%, -20%) translateX(-140%) rotate(-18deg) !important;
-  }
-
-  .gallery-container {
-    perspective: 1500px;
-    transform-style: preserve-3d;
-  }
-
-  .gallery-stack {
-    transform-style: preserve-3d;
-    max-width: min(1400px, 90vw);
-  }
-
-  .story-image:hover {
-    width: 400px;
-    height: 520px;
-  }
+.story-image.position-2 {
+  transform: translate(-50%, -30%) translateX(80%) rotate(15deg);
+  z-index: 3;
 }
 
-/* Desktop breakpoint */
-@media (min-width: 1024px) {
-  .story-image {
-    width: 570px;
-    height: 730px;
-  }
-
-  .story-image:nth-child(1) {
-    transform: translate(-50%, -20%) translateX(180%) rotate(18deg);
-    z-index: 5;
-  }
-
-  .story-image:nth-child(2) {
-    transform: translate(-50%, -42%) translateX(100%) rotate(8deg);
-    z-index: 4;
-  }
-
-  .story-image:nth-child(3) {
-    transform: translate(-50%, -50%) translateX(0) rotate(0deg);
-    z-index: 3;
-  }
-
-  .story-image:nth-child(4) {
-    transform: translate(-50%, -42%) translateX(-100%) rotate(-8deg);
-    z-index: 2;
-  }
-
-  .story-image:nth-child(5) {
-    transform: translate(-50%, -20%) translateX(-180%) rotate(-18deg);
-    z-index: 1;
-  }
-
-  .story-image:hover {
-    width: 571px;
-    height: 731px;
-  }
+.story-image.position-3 {
+  transform: translate(-50%, -40%) translateX(0) rotate(0deg);
+  z-index: 5;
 }
 
-/* Large desktop breakpoint */
-@media (min-width: 1440px) {
-  .story-image {
-    width: 670px;
-    height: 830px;
-  }
+.story-image.position-4 {
+  transform: translate(-50%, -30%) translateX(-80%) rotate(-15deg);
+  z-index: 3;
+}
 
-  .story-image:hover {
-    width: 671px;
-    height: 831px;
-  }
+.story-image.position-5 {
+  transform: translate(-50%, -10%) translateX(-140%) rotate(-25deg);
+  z-index: 2;
+}
+
+.story-image.position-6 {
+  transform: translate(-50%, 20%) translateX(-180%) rotate(-35deg);
+  z-index: 1;
+}
+
+/* Movement styles - maintain circular path during movement */
+.gallery-stack[data-moving="true"] .story-image.position-0 {
+  transform: translate(-50%, 20%) translateX(calc(180% + var(--move-offset))) rotate(35deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-1 {
+  transform: translate(-50%, -10%) translateX(calc(140% + var(--move-offset))) rotate(25deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-2 {
+  transform: translate(-50%, -30%) translateX(calc(80% + var(--move-offset))) rotate(15deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-3 {
+  transform: translate(-50%, -40%) translateX(calc(0% + var(--move-offset))) rotate(0deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-4 {
+  transform: translate(-50%, -30%) translateX(calc(-80% + var(--move-offset))) rotate(-15deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-5 {
+  transform: translate(-50%, -10%) translateX(calc(-140% + var(--move-offset))) rotate(-25deg);
+}
+
+.gallery-stack[data-moving="true"] .story-image.position-6 {
+  transform: translate(-50%, 20%) translateX(calc(-180% + var(--move-offset))) rotate(-35deg);
+}
+
+/* Remove rotation animations */
+.gallery-stack.rotating-right,
+.gallery-stack.rotating-left {
+  animation: none;
+}
+
+/* Keep opacity transitions but remove transform transitions */
+.rotating-right .story-image,
+.rotating-left .story-image {
+  transition: opacity 0.3s ease;
+}
+
+/* Update gallery container styles */
+.gallery-container {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 2000px;
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+.gallery-stack {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  transform-style: preserve-3d;
+  transform: translateZ(-100px) rotateX(5deg);
 }
 
 /* Add text overlay styles if needed */
@@ -291,65 +260,9 @@ body {
   opacity: 1;
 }
 
-/* Update gallery container and stack styles */
-.gallery-container {
-  position: relative;
-  min-height: 100vh;
-  width: 100vw;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow-y: auto;
-  padding: 80px 20px;
-}
-
-.gallery-stack {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  padding: 40px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 80px;
-}
-
-/* Adjust perspective for different screen sizes */
-@media (max-width: 768px) {
-  .gallery-container {
-    perspective: 1000px;
-  }
-}
-
-/* Reset for desktop and restore original desktop styles */
-@media (min-width: 768px) {
-  .gallery-container {
-    height: 100vh;
-    min-height: unset;
-    align-items: center;
-    overflow: hidden;
-    padding: 0;
-    perspective: 1500px;
-    transform-style: preserve-3d;
-  }
-
-  .gallery-stack {
-    height: 100vh;
-    min-height: unset;
-    padding: 0;
-    display: block;
-    transform-style: preserve-3d;
-    max-width: min(1400px, 90vw);
-  }
-
-  .story-image {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin: 0;
-    border-radius: 12px;
-    transform-style: preserve-3d;
-    width: 580px;
-    height: 700px;
-  }
+/* Add scroll progress modifier */
+.gallery-stack[data-scroll-progress] .story-image {
+  transform: translate(-50%, var(--base-y)) 
+             translateX(calc(var(--base-x) + (var(--scroll-progress) * 50%))) 
+             rotate(calc(var(--base-rotate) + (var(--scroll-progress) * 5deg)));
 }
