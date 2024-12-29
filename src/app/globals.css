@@ -130,6 +130,7 @@ body {
   will-change: transform;
   transition: transform 0.3s ease-out;
   pointer-events: none;
+  transform-origin: center center;
 }
 
 .story-image[style*="visible"] {

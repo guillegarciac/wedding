@@ -199,12 +199,13 @@ export default function StoryPage() {
     // Immediate z-index update for hovered state
     if (isHovered) {
       return {
-        transform: `scale(1.04) ${baseTransform}`,
+        transform: `translate(-50%, ${position.y}%) translateX(${position.x}%) scale(1.04) rotate(${position.rotate}deg)`,
         zIndex: 9999,
         visibility: 'visible',
         opacity: 1,
         pointerEvents: 'auto',
         transition: 'transform 0.3s ease-out',
+        transformOrigin: 'center center',
       };
     }
 
@@ -215,6 +216,7 @@ export default function StoryPage() {
       visibility: 'visible',
       opacity: 1,
       transition: isMoving ? 'none' : 'transform 0.3s ease-out',
+      transformOrigin: 'center center',
     };
   };
 
