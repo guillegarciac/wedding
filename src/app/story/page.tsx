@@ -75,6 +75,8 @@ const storyImages = [
 
 export default function StoryPage() {
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMoving, setIsMoving] = useState(false);
 
@@ -86,86 +88,133 @@ export default function StoryPage() {
     let animationFrameId: number;
 
     const updatePosition = () => {
-      if (!isMoving) return;
-      
-      // Normalize position for seamless infinite loop
       const totalWidth = storyImages.length * 100;
       currentPosition = ((currentPosition % totalWidth) + totalWidth) % totalWidth;
       
       setScrollPosition(currentPosition);
-      animationFrameId = requestAnimationFrame(updatePosition);
+      
+      // Calculate which image is in the center position
+      const centerIndex = Math.floor(currentPosition / 100);
+      const centerOffset = (currentPosition % 100) / 100;
+      
+      // Update active image based on scroll position
+      const newActiveIndex = centerOffset > 0.5 ? 
+        (centerIndex + 1) % storyImages.length : 
+        centerIndex;
+      
+      setActiveImageIndex(newActiveIndex);
     };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      setIsMoving(true);
       
-      currentPosition += e.deltaY * 0.3;
+      const maxDelta = 20;
+      const scrollDelta = Math.max(Math.min(e.deltaY, maxDelta), -maxDelta);
+      currentPosition += scrollDelta * 0.3;
+      
+      setIsMoving(true);
+      requestAnimationFrame(updatePosition);
+    };
 
-      if (!animationFrameId) {
-        animationFrameId = requestAnimationFrame(updatePosition);
-      }
+    const handleScrollEnd = () => {
+      setIsMoving(false);
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('mouseleave', handleScrollEnd);
     
     return () => {
       container.removeEventListener('wheel', handleWheel);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      container.removeEventListener('mouseleave', handleScrollEnd);
     };
-  }, [isMoving]);
+  }, []);
 
   const getImageStyle = (index: number) => {
     const totalImages = storyImages.length;
-    
-    const normalizedScroll = scrollPosition % (totalImages * 100);
-    const adjustedIndex = (totalImages + index - Math.floor(normalizedScroll / 100)) % totalImages;
+    const adjustedIndex = (totalImages + index - Math.floor(scrollPosition / 100)) % totalImages;
     
     const calculateArchPosition = (idx: number) => {
       const distanceFromCenter = idx - Math.floor(totalImages / 2);
-      const step = 55;
+      const step = 80;
       const rotationStep = 8;
+      const baseHeight = -55;
+
+      // Calculate scroll progress within current position (0 to 1)
+      const scrollProgress = (scrollPosition % 100) / 100;
       
-      const baseHeight = -52;
+      // Calculate dynamic position based on scroll
+      const x = distanceFromCenter * step;
+      const nextX = (distanceFromCenter - 1) * step;
+      const interpolatedX = x + (nextX - x) * scrollProgress;
       
-      let verticalOffset;
-      if (Math.abs(distanceFromCenter) === 1) {
-        verticalOffset = 5;
-      } else if (Math.abs(distanceFromCenter) === 2) {
-        verticalOffset = 20;
-      } else if (Math.abs(distanceFromCenter) === 3) {
-        verticalOffset = 40;
-      } else if (Math.abs(distanceFromCenter) > 3) {
-        verticalOffset = 55;
-      } else {
-        verticalOffset = 0;
-      }
+      // Dynamic rotation
+      const rotation = distanceFromCenter * rotationStep;
+      const nextRotation = (distanceFromCenter - 1) * rotationStep;
+      const interpolatedRotation = rotation + (nextRotation - rotation) * scrollProgress;
+      
+      // Dynamic vertical offset with more pronounced steps
+      let currentOffset = 0;
+      if (Math.abs(distanceFromCenter) === 1) currentOffset = 8;      // Images 2 and 3
+      else if (Math.abs(distanceFromCenter) === 2) currentOffset = 22; // Images 4 and 5
+      else if (Math.abs(distanceFromCenter) === 3) currentOffset = 45; // Images 6 and 7
+      else if (Math.abs(distanceFromCenter) > 3) currentOffset = 60;   // Further images
+      
+      let nextOffset = 0;
+      if (Math.abs(distanceFromCenter - 1) === 1) nextOffset = 8;
+      else if (Math.abs(distanceFromCenter - 1) === 2) nextOffset = 22;
+      else if (Math.abs(distanceFromCenter - 1) === 3) nextOffset = 45; // Keep consistent with current offset
+      else if (Math.abs(distanceFromCenter - 1) > 3) nextOffset = 60;
+      
+      const interpolatedY = baseHeight + currentOffset + (nextOffset - currentOffset) * scrollProgress;
       
       return {
-        y: baseHeight + verticalOffset,
-        x: distanceFromCenter * step,
-        rotate: distanceFromCenter * rotationStep,
-        z: Math.abs(distanceFromCenter)
+        y: interpolatedY,
+        x: interpolatedX,
+        rotate: interpolatedRotation,
+        z: distanceFromCenter + scrollProgress
       };
     };
 
     const position = calculateArchPosition(adjustedIndex);
-    const transitionOffset = (normalizedScroll % 100);
+    const isVisible = Math.abs(adjustedIndex - Math.floor(totalImages / 2)) <= 4;
+    const isInViewport = position.y < 45;
+    const isHovered = index === hoveredImageIndex;
+
+    // Base style for hidden images
+    if (!isVisible || !isInViewport) {
+      return {
+        transform: `translate(-50%, ${position.y}%) translateX(${position.x}%) rotate(${position.rotate}deg) translateZ(-10000px)`,
+        zIndex: -1000,
+        visibility: 'hidden',
+        opacity: 0,
+        pointerEvents: 'none',
+        position: 'absolute',
+        clipPath: 'polygon(0 0, 0 0, 0 0, 0 0)',
+      };
+    }
+
+    // Base transform for all visible images
+    const baseTransform = `translate(-50%, ${position.y}%) translateX(${position.x}%) rotate(${position.rotate}deg)`;
     
-    // Only show images that are within the visible range (5 positions from center)
-    const isVisible = Math.abs(adjustedIndex - Math.floor(totalImages / 2)) <= 5;
-    
+    // Immediate z-index update for hovered state
+    if (isHovered) {
+      return {
+        transform: `scale(1.04) ${baseTransform}`,
+        zIndex: 9999,
+        visibility: 'visible',
+        opacity: 1,
+        pointerEvents: 'auto',
+        transition: 'transform 0.3s ease-out',
+      };
+    }
+
+    // Simple z-index for other images
     return {
-      transform: `
-        translate(-50%, ${position.y}%) 
-        translateX(calc(${position.x}% + ${transitionOffset}px)) 
-        rotate(${position.rotate}deg)
-      `,
-      zIndex: totalImages - position.z,
-      visibility: isVisible ? 'visible' : 'hidden',
-      opacity: isVisible ? 1 : 0
+      transform: baseTransform,
+      zIndex: position.x > 0 ? 10 : 5,
+      visibility: 'visible',
+      opacity: 1,
+      transition: isMoving ? 'none' : 'transform 0.3s ease-out',
     };
   };
 
@@ -177,12 +226,17 @@ export default function StoryPage() {
         </Link>
       </header>
 
-      <div ref={containerRef} className="gallery-container">
+      <div 
+        ref={containerRef} 
+        className="gallery-container"
+        onMouseLeave={() => setHoveredImageIndex(null)}
+      >
         <div className="gallery-stack">
           {storyImages.map((image, index) => (
             <div 
               key={image.src}
               className="story-image"
+              onMouseEnter={() => setHoveredImageIndex(index)}
               style={{ 
                 transform: getImageStyle(index).transform, 
                 zIndex: getImageStyle(index).zIndex, 

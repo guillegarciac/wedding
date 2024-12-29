@@ -122,19 +122,24 @@ body {
 /* Add these to your existing styles */
 .story-image {
   position: absolute;
-  width: 570px;
-  height: 790px;
+  width: 600px;
+  height: 820px;
   left: 50%;
   top: 50%;
   transform-style: preserve-3d;
-  will-change: transform, opacity;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out, visibility 0s linear 0.3s;
-  pointer-events: none; /* Prevent interaction with hidden images */
+  will-change: transform;
+  transition: transform 0.3s ease-out;
+  pointer-events: none;
 }
 
 .story-image[style*="visible"] {
   pointer-events: auto;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out, visibility 0s linear 0s;
+  cursor: pointer;
+}
+
+/* Simplified hover effect */
+.story-image:hover {
+  scale: 1.02;
 }
 
 .story-image img {
@@ -230,7 +235,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 2000px;
+  perspective: 1600px;
   transform-style: preserve-3d;
   overflow: hidden;
 }
@@ -240,7 +245,7 @@ body {
   width: 100%;
   height: 100vh;
   transform-style: preserve-3d;
-  transform: translateZ(-100px) rotateX(5deg);
+  transform: translateZ(-80px) rotateX(5deg);
 }
 
 /* Add text overlay styles if needed */
